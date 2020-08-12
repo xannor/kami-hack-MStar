@@ -54,8 +54,28 @@ pack_image()
 
     echo ">>> Packing ${TYPE}_${CAMERA_ID}"
 
-    echo -n "    Creating jffs2 filesystem in $DIR/${TYPE}_${CAMERA_ID}.jffs2... "
-    mkfs.jffs2 -l -e 0x10000 -r $DIR/$TYPE -o $OUT/${TYPE}_${CAMERA_ID}.jffs2 || exit 1
+#    echo -n "    Creating jffs2 filesystem in $DIR/${TYPE}_${CAMERA_ID}.jffs2... "
+#    mkfs.jffs2 -l -e 0x10000 -r $DIR/$TYPE -o $OUT/${TYPE}_${CAMERA_ID}.jffs2 || exit 1
+    echo TYPE $TYPE
+    echo CAMERA_ID $CAMERA_ID
+    echo DIR $DIR
+    echo OUT $OUT
+    echo -n "    Creating tar.bz2 archive in $DIR/${TYPE}_${CAMERA_ID}.tar.bz2... "
+    tar jcvf $OUT/${TYPE}_${CAMERA_ID}.tar.bz2 -C $DIR $TYPE || exit 1    
+    echo "done!"
+}
+
+squash_image()
+{
+    local TYPE=$1
+    local CAMERA_ID=$2
+    local DIR=$3
+    local OUT=$4
+
+    echo ">>> Squashing ${TYPE}_${CAMERA_ID}"
+
+    echo -n "    Creating squashfs filesystem in $DIR/${TYPE}_${CAMERA_ID}.squashfs... "
+    mksquashfs $DIR/$TYPE $OUT/${TYPE}_${CAMERA_ID}.squashfs -comp xz -Xbcj armthumb,arm -noappend -no-recovery || exit 1
     echo "done!"
 }
 
@@ -108,11 +128,12 @@ sleep 1
 echo -n ">>> Checking if the required sysroot exists... "
 
 # Check if the sysroot exist
-if [[ ! -d "$SYSROOT_DIR/home" || ! -d "$SYSROOT_DIR/rootfs" ]]; then
+#if [[ ! -d "$SYSROOT_DIR/home" || ! -d "$SYSROOT_DIR/rootfs" ]]; then
+if [[ ! -d "$SYSROOT_DIR/home" ]]; then
     printf "\n\n"
     echo "ERROR: Cannot find the sysroot. Missing:"
     echo " > $SYSROOT_DIR/home"
-    echo " > $SYSROOT_DIR/rootfs"
+#    echo " > $SYSROOT_DIR/rootfs"
     echo ""
     echo "You should create the $CAMERA_NAME sysroot before trying to pack the firmware."
     exit 1
@@ -130,8 +151,8 @@ echo "${TMP_DIR} created!"
 
 # Copy the sysroot to the tmp dir
 echo ">>> Copying the sysroot contents to ${TMP_DIR}... "
-echo "    Copying rootfs..."
-rsync -a ${SYSROOT_DIR}/rootfs/* ${TMP_DIR}/rootfs || exit 1
+#echo "    Copying rootfs..."
+#rsync -a ${SYSROOT_DIR}/rootfs/* ${TMP_DIR}/rootfs || exit 1
 echo "    Copying home..."
 rsync -a ${SYSROOT_DIR}/home/* ${TMP_DIR}/home || exit 1
 echo "    done!"
@@ -156,7 +177,7 @@ printf "done!\n"
 
 # Copy the build files to the tmp dir
 echo -n ">>> Copying files from the build directory to ${TMP_DIR}... "
-cp -R $BUILD_DIR/rootfs/* $TMP_DIR/rootfs || exit 1
+#cp -R $BUILD_DIR/rootfs/* $TMP_DIR/rootfs || exit 1
 cp -R $BUILD_DIR/home/* $TMP_DIR/home || exit 1
 echo "done!"
 
@@ -205,16 +226,24 @@ echo "done!"
 #echo "done!"
 
 # home 
-pack_image "home" $CAMERA_ID $TMP_DIR $OUT_DIR
-mv $OUT_DIR/home_$CAMERA_ID.jffs2 $OUT_DIR/home_$CAMERA_ID
+#pack_image "home" $CAMERA_ID $TMP_DIR $OUT_DIR
+#mv $OUT_DIR/home_$CAMERA_ID.jffs2 $OUT_DIR/home_$CAMERA_ID
+pack_image "home" ${CAMERA_ID}m $TMP_DIR $OUT_DIR
+mv $OUT_DIR/home_${CAMERA_ID}m.tar.bz2 $OUT_DIR/home_${CAMERA_ID}m.stage
 
 # rootfs
-pack_image "rootfs" $CAMERA_ID $TMP_DIR $OUT_DIR
-mv $OUT_DIR/rootfs_$CAMERA_ID.jffs2 $OUT_DIR/sys_$CAMERA_ID
+#if [ -z $SQUASHFS[$CAMERA_ID] ]; then
+#    pack_image "rootfs" $CAMERA_ID $TMP_DIR $OUT_DIR
+#    mv $OUT_DIR/rootfs_$CAMERA_ID.jffs2 $OUT_DIR/sys_$CAMERA_ID
+#else
+#    squash_image "rootfs" $CAMERA_ID $TMP_DIR $OUT_DIR
+#    mv $OUT_DIR/rootfs_$CAMERA_ID.squashfs $OUT_DIR/sys_$CAMERA_ID
+#fi
 
 # create tar.gz
 rm -f $OUT_DIR/*.tgz
-tar zcvf $OUT_DIR/${CAMERA_NAME}_${VER}.tgz -C $OUT_DIR sys_$CAMERA_ID home_$CAMERA_ID
+#tar zcvf $OUT_DIR/${CAMERA_NAME}_${VER}.tgz -C $OUT_DIR sys_$CAMERA_ID home_$CAMERA_ID
+tar zcvf $OUT_DIR/${CAMERA_NAME}_${VER}.tgz -C $OUT_DIR *
 
 # Cleanup
 echo -n ">>> Cleaning up the tmp folder... "

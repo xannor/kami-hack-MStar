@@ -70,6 +70,14 @@ jffs2_umount()
     umount /dev/mtdblock0 &>/dev/null
 }
 
+squashfs_copy()
+{
+    local SQ_FILE=$1
+    local DEST_DIR=$2
+
+    unsquashfs -f -d $DEST_DIR $SQ_FILE
+}
+
 jffs2_copy()
 {
     check_jefferson
@@ -108,13 +116,14 @@ extract_stock_fw()
 
     local FIRMWARE_HOME_JFFS2=$FW_DIR/home_$CAMERA_ID.jffs2
     local FIRMWARE_ROOTFS_JFFS2=$FW_DIR/sys_$CAMERA_ID.jffs2
+    local FIRMWARE_ROOTFS_SQUASHFS=$FW_DIR/rootfs_$CAMERA_ID.squashfs
 
     local FIRMWARE_HOME_DESTDIR=$SYSROOT_DIR/home
     local FIRMWARE_ROOTFS_DESTDIR=$SYSROOT_DIR/rootfs
 
     echo "Extracting the stock firmware file systems or archives..."
 
-    if [[ ! -f "$FIRMWARE_HOME_JFFS2" || ! -f "$FIRMWARE_ROOTFS_JFFS2" ]]; then
+    if [[ ! -f "$FIRMWARE_HOME_JFFS2" || ! ( -f "$FIRMWARE_ROOTFS_JFFS2" || -f "$FIRMWARE_ROOTFS_SQUASHFS" ) ]]; then
         echo "ERROR: $FIRMWARE_HOME_JFFS2 or $FIRMWARE_ROOTFS_JFFS2 not found. Trying with .tgz archives."
 
         if [[ ! -f "$FIRMWARE_HOME" || ! -f "$FIRMWARE_ROOTFS" ]]; then
@@ -138,10 +147,17 @@ extract_stock_fw()
         jffs2_copy $FIRMWARE_HOME_JFFS2 $FIRMWARE_HOME_DESTDIR
         echo "done!"
 
-        echo $FIRMWARE_ROOTFS_JFFS2
-        printf "Extracting \"sys_$CAMERA_ID\" to \"$FIRMWARE_ROOTFS_DESTDIR\"... "
-        jffs2_copy $FIRMWARE_ROOTFS_JFFS2 $FIRMWARE_ROOTFS_DESTDIR
-        echo "done!"
+        if [[ -f "$FIRMWARE_ROOTFS_JFFS2" ]]; then
+            echo $FIRMWARE_ROOTFS_JFFS2
+            printf "Extracting \"sys_$CAMERA_ID\" to \"$FIRMWARE_ROOTFS_DESTDIR\"... "
+            jffs2_copy $FIRMWARE_ROOTFS_JFFS2 $FIRMWARE_ROOTFS_DESTDIR
+            echo "done!"
+        else
+            echo $FIRMWARE_ROOTFS_SQUASHFS
+            printf "Extracting \"sys_$CAMERA_ID\" to \"$FIRMWARE_ROOTFS_DESTDIR\"... "
+            squashfs_copy $FIRMWARE_ROOTFS_SQUASHFS $FIRMWARE_ROOTFS_DESTDIR
+            echo "done!"
+        fi
     fi
 }
 
@@ -164,6 +180,8 @@ if [ $# -ne 1 ]; then
     echo ""
     exit 1
 fi
+# this is not needed disabling
+exit 0
 
 CAMERA_NAME=$1
 

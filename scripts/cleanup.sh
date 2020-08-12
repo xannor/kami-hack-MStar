@@ -43,10 +43,10 @@ STATIC_DIR=$BASE_DIR/static
 BUILD_DIR=$BASE_DIR/build
 OUT_DIR=$BASE_DIR/out
 
-echo "Cleaning sysroot ..."
-for CAMERA_NAME in "${!CAMERAS[@]}"; do
-    rm -rf $SYSROOT_DIR/$CAMERA_NAME
-done
+#echo "Cleaning sysroot ..."
+#for CAMERA_NAME in "${!CAMERAS[@]}"; do
+#    rm -rf $SYSROOT_DIR/$CAMERA_NAME
+#done
 echo "Cleaning build dir ..."
 rm -rf $BUILD_DIR
 echo "Cleaning out dir ..."

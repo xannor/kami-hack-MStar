@@ -30,6 +30,6 @@ require_root
 
 SCRIPT_DIR=$(get_script_dir)
 
-for CAMERA_NAME in "${!CAMERAS[@]}"; do
-    $SCRIPT_DIR/init_sysroot.sh $CAMERA_NAME
-done
+#for CAMERA_NAME in "${!CAMERAS[@]}"; do
+#    $SCRIPT_DIR/init_sysroot.sh $CAMERA_NAME
+#done

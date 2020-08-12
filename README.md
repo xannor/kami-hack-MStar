@@ -1,14 +1,11 @@
-<p align="center">
-	<img height="200" src="https://user-images.githubusercontent.com/39277388/85948999-59034780-b954-11ea-8fb3-c4c88727cf5b.png">
-</p>
 
-# Custom firmware for Yi camera based on MStar platform
+# Custom firmware for Kami (Yi) camera based on MStar platform
 
 This firmware is completely based on the work done by TheCrypt0
-https://github.com/TheCrypt0/yi-hack-v4
-It's a clone made for Yi cameras based on MStar platform.
+https://github.com/roleoroleo/yi-hack-MStar and https://github.com/roleoroleo/yi-hack-Allwinner
+It's a clone made for Kami (Yi) cameras based on MStar platform.
 
-**But you can't choose between TheCrypt0 and MStar: if your cam is based on Hi3518e Chipset then you have to use TheCrypt0, if your cam is based on MStar Infinity Chipset then you have to use MStar.**
+''' borrowed from roleoroleo's readme until this is far enough along to have its own info '''
 
 I have no time to support the project, so feel free to clone/fork this git and modify it as you want.
 
