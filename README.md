@@ -1,11 +1,11 @@
 
 # Custom firmware for Kami (Yi) camera based on MStar platform
 
-This firmware is completely based on the work done by TheCrypt0
+This firmware is completely based on the work done by RoleoRoleo and TheCrypt0
 https://github.com/roleoroleo/yi-hack-MStar and https://github.com/roleoroleo/yi-hack-Allwinner
 It's a clone made for Kami (Yi) cameras based on MStar platform.
 
-''' borrowed from roleoroleo's readme until this is far enough along to have its own info '''
+''' borrowed from RoleoRoleo's readme until this is far enough along to have its own info '''
 
 I have no time to support the project, so feel free to clone/fork this git and modify it as you want.
 
