@@ -10,3 +10,5 @@ rm -rf SDK
 rm -rf gsoap-2.8
 rm -rf openssl-1.0.2u
 rm -rf openssl
+rm -rf zlib-1.2.11
+rm -rf zlib

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=${PATH}:/opt/yi/arm-linux-gnueabihf-4.8.3-201404/bin
+export PATH=${PATH}:$TOOLCHAIN_PATH/bin
 
 export TARGET=arm-linux-gnueabihf
 export CROSS=arm-linux-gnueabihf

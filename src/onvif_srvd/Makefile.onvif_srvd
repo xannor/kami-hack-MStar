@@ -219,6 +219,7 @@ endif
 
 $(GENERATED_DIR)/onvif.h:
 	@$(build_openssl)
+	@$(build_zlib)
 	@$(build_gsoap)
 	@mkdir -p $(GENERATED_DIR)
 	$(WSDL2H) -d -t ./wsdl/typemap.dat  -o $@  $(WSDL_FILES)
@@ -273,7 +274,7 @@ define build_gsoap
     # build
     if [ ! -f $(SOAPCPP2) ] || [ ! -f $(WSDL2H) ]; then \
          cd gsoap-2.8; \
-         ./configure --disable-c-locale --disable-ssl && \
+         ./configure --disable-c-locale --with-openssl=$(CURDIR)/openssl --with-zlib=$(CURDIR)/zlib && \
          make -j1; \
          cd ..;\
     fi
@@ -305,7 +306,35 @@ define build_openssl
     fi
 endef
 
+define build_zlib
 
+    # get archive
+    if [ ! -f SDK/zlib.tar.gz ]; then \
+        mkdir -p SDK; \
+        wget -O ./SDK/zlib.tar.gz.tmp "https://zlib.net/zlib-1.2.11.tar.gz" && \
+        mv ./SDK/zlib.tar.gz.tmp ./SDK/zlib.tar.gz; \
+    fi
+
+    # untar
+    if [ ! -f zlib-1.2.11/README ]; then \
+        tar zxvf ./SDK/zlib.tar.gz; \
+        ln -s zlib-1.2.11 zlib; \
+        cd zlib; \
+        mkdir include lib; \
+        cd include; \
+        ln -s ../*.h .; \
+        cd ../..; \
+    fi
+
+    # build
+    if [ ! -f zlib/libz.so.1.2.11 ]; then \
+        cd zlib; \
+        CC=arm-linux-gnueabihf-gcc ./configure && \
+        CC=arm-linux-gnueabihf-gcc make; \
+        cd ..;\
+    fi
+
+endef
 
 .PHONY: help
 help:

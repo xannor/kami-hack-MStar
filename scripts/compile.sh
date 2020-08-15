@@ -74,26 +74,32 @@ source "$(get_script_dir)/common.sh"
 
 echo ""
 echo "------------------------------------------------------------------------"
-echo " YI-HACK - SRC COMPILER"
+echo " KAMI-HACK - SRC COMPILER"
 echo "------------------------------------------------------------------------"
 echo ""
 
+export TOOLCHAIN_PATH="/opt/kami/gcc-arm-8.2-2018.08-x86_64-arm-linux-gnueabihf"
+
 # this is needed because with sudo the PATH apparently doesn't contain it. Idk why
 # Hisilicon Linux, Cross-Toolchain PATH
-export PATH="/opt/yi/arm-linux-gnueabihf-4.8.3-201404/bin:~/.local/bin:$PATH"
+export PATH="$TOOLCHAIN_PATH/bin:~/.local/bin:$PATH"
 
 rm -rf "$(get_script_dir)/../build/"
 
 mkdir -p "$(get_script_dir)/../build/home"
-mkdir -p "$(get_script_dir)/../build/rootfs"
+#mkdir -p "$(get_script_dir)/../build/rootfs"
 
 SRC_DIR=$(get_script_dir)/../src
 
 for SUB_DIR in $SRC_DIR/* ; do
-    if [ -d ${SUB_DIR} ]; then # Will not run if no directories are available
+    if [ -d ${SUB_DIR} ] && ( [ -z "$1" ] || [ "$SRC_DIR/$1" == "$SUB_DIR" ] ); then # Will not run if no directories are available
         compile_module $(normalize_path "$SUB_DIR") || exit 1
     fi
 done
+
+if [ ! -z "$1" ]; then
+    exit
+fi
 
 BIN_DIR=$(get_script_dir)/../bin
 BUILD_DIR=$(get_script_dir)/../build
