@@ -11,6 +11,7 @@ if [ "$HEADER" == "5a42" ]; then
     rm home_h31m
     /home/base/tools/7za -o/tmp/update e $1
     mv home_h31m home4
+    cp /home/base/tools/7za /tmp/update
 else
     cp /home/base/tools/rsa_pub_dec /home/base/tools/7za /tmp/update
 
