@@ -9,9 +9,8 @@ dd if=home_h31m of=header bs=2 count=1
 HEADER=`hexdump -n 2 -x header | grep 0000000 | awk '{print $2}'`
 if [ "$HEADER" == "5a42" ]; then
     rm home_h31m
-    /home/base/tools/7za -o/tmp/update e $1
-    mv home_h31m home4
-    cp /home/base/tools/7za /tmp/update
+    /home/base/tools/7za e -so $1 | tar xvf -
+    act=$?
 else
     cp /home/base/tools/rsa_pub_dec /home/base/tools/7za /tmp/update
 
@@ -91,10 +90,11 @@ else
     else
         echo md5_home4==md5_in, check pass
     fi
+
+    ./7za x home4 -p$zpwd
+    act=$?
 fi
 
-./7za x home4 -p$zpwd
-act=$?
 base=0
 if [ $act -eq $base ]
 then
