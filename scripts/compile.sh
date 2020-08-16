@@ -78,7 +78,7 @@ echo " KAMI-HACK - SRC COMPILER"
 echo "------------------------------------------------------------------------"
 echo ""
 
-export TOOLCHAIN_PATH="/opt/kami/gcc-arm-8.2-2018.08-x86_64-arm-linux-gnueabihf"
+export TOOLCHAIN_PATH="/opt/yi/gcc-arm-8.2-2018.08-x86_64-arm-linux-gnueabihf"
 
 # this is needed because with sudo the PATH apparently doesn't contain it. Idk why
 # Hisilicon Linux, Cross-Toolchain PATH

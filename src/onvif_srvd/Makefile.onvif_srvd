@@ -219,7 +219,6 @@ endif
 
 $(GENERATED_DIR)/onvif.h:
 	@$(build_openssl)
-	@$(build_zlib)
 	@$(build_gsoap)
 	@mkdir -p $(GENERATED_DIR)
 	$(WSDL2H) -d -t ./wsdl/typemap.dat  -o $@  $(WSDL_FILES)
@@ -274,7 +273,7 @@ define build_gsoap
     # build
     if [ ! -f $(SOAPCPP2) ] || [ ! -f $(WSDL2H) ]; then \
          cd gsoap-2.8; \
-         ./configure --disable-c-locale --with-openssl=$(CURDIR)/openssl --with-zlib=$(CURDIR)/zlib && \
+         ./configure --disable-c-locale && \
          make -j1; \
          cd ..;\
     fi

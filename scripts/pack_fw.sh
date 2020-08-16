@@ -102,6 +102,7 @@ BASE_DIR=$(get_script_dir)/../
 BASE_DIR=$(normalize_path $BASE_DIR)
 
 SYSROOT_DIR=$BASE_DIR/sysroot/$CAMERA_NAME
+SDHACK_DIR=$BASE_DIR/sdhack
 STATIC_DIR=$BASE_DIR/static
 BUILD_DIR=$BASE_DIR/build
 OUT_DIR=$BASE_DIR/out/$CAMERA_NAME
@@ -240,10 +241,16 @@ mv $OUT_DIR/home_${CAMERA_ID}m.tar.bz2 $OUT_DIR/home_${CAMERA_ID}m.stage
 #    mv $OUT_DIR/rootfs_$CAMERA_ID.squashfs $OUT_DIR/sys_$CAMERA_ID
 #fi
 
+# Copy the sdhack to the output dir
+echo ">>> Copying the sdhack contents to $OUT_DIR... "
+echo "    Copying sdhack..."
+rsync -a ${SDHACK_DIR}/* $OUT_DIR || exit 1
+echo "    done!"
+
 # create tar.gz
 rm -f $OUT_DIR/*.tgz
 #tar zcvf $OUT_DIR/${CAMERA_NAME}_${VER}.tgz -C $OUT_DIR sys_$CAMERA_ID home_$CAMERA_ID
-tar zcvf $OUT_DIR/${CAMERA_NAME}_${VER}.tgz -C $OUT_DIR *
+cd $OUT_DIR; tar zcvf $OUT_DIR/${CAMERA_NAME}_${VER}.tgz *
 
 # Cleanup
 echo -n ">>> Cleaning up the tmp folder... "

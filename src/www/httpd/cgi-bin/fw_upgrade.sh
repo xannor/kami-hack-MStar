@@ -16,7 +16,7 @@ if [ "$VAL" == "info" ] ; then
     printf "Content-type: application/json\r\n\r\n"
 
     FW_VERSION=`cat /home/yi-hack/version`
-    LATEST_FW=`wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-MStar/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+    LATEST_FW=`wget -O -  https://api.github.com/repos/xannor/kami-hack-MStar/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
 
     printf "{\n"
     printf "\"%s\":\"%s\",\n" "fw_version"      "$FW_VERSION"
@@ -38,20 +38,20 @@ elif [ "$VAL" == "upgrade" ] ; then
         exit
     fi
 
-    rm -rf /tmp/sd/.fw_upgrade
-    mkdir -p /tmp/sd/.fw_upgrade
-    cd /tmp/sd/.fw_upgrade
+    rm -rf /tmp/sd/fw_upgrade
+    mkdir -p /tmp/sd/fw_upgrade
+    cd /tmp/sd/fw_upgrade
 
     MODEL_SUFFIX=`cat $YI_HACK_PREFIX/model_suffix`
     FW_VERSION=`cat /home/yi-hack/version`
-    LATEST_FW=`wget -O -  https://api.github.com/repos/roleoroleo/yi-hack-MStar/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+    LATEST_FW=`wget -O -  https://api.github.com/repos/xannor/kami-hack-MStar/releases/latest 2>&1 | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
     if [ "$FW_VERSION" == "$LATEST_FW" ]; then
         printf "Content-type: text/html\r\n\r\n"
         printf "No new firmware available."
         exit
     fi
 
-    wget https://github.com/roleoroleo/yi-hack-MStar/releases/download/$LATEST_FW/${MODEL_SUFFIX}_${LATEST_FW}.tgz
+    wget https://github.com/xannor/kami-hack-MStar/releases/download/$LATEST_FW/${MODEL_SUFFIX}_${LATEST_FW}.tgz
     if [ ! -f ${MODEL_SUFFIX}_${LATEST_FW}.tgz ]; then
         printf "Content-type: text/html\r\n\r\n"
         printf "Unable to download firmware file."

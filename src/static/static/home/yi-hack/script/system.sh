@@ -8,9 +8,6 @@ YI_PREFIX="/home/app"
 YI_HACK_VER=$(cat /home/yi-hack/version)
 MODEL_SUFFIX=$(cat /home/yi-hack/model_suffix)
 
-SERIAL_NUMBER=$(dd status=none bs=1 count=20 skip=661 if=/tmp/mmap.info)
-HW_ID=$(dd status=none bs=1 count=4 skip=661 if=/tmp/mmap.info)
-
 get_config()
 {
     key=$1
@@ -48,23 +45,24 @@ fi
 touch /tmp/httpd.conf
 
 # Restore configuration after a firmware upgrade
-if [ -f $YI_HACK_PREFIX/.fw_upgrade_in_progress ]; then
-    cp -f /tmp/sd/.fw_upgrade/*.conf $YI_HACK_PREFIX/etc/
+if [ -f $YI_HACK_PREFIX/fw_upgrade_in_progress ]; then
+    cp -f /tmp/sd/fw_upgrade/*.conf $YI_HACK_PREFIX/etc/
     chmod 0644 $YI_HACK_PREFIX/etc/*.conf
-    if [ -f /tmp/sd/.fw_upgrade/hostname ]; then
-        cp -f /tmp/sd/.fw_upgrade/hostname /etc/
+    if [ -f /tmp/sd/fw_upgrade/hostname ]; then
+        cp -f /tmp/sd/fw_upgrade/hostname /etc/
         chmod 0644 /etc/hostname
     fi
-    if [ -f /tmp/sd/.fw_upgrade/TZ ]; then
-        cp -f /tmp/sd/.fw_upgrade/TZ /etc/
+    if [ -f /tmp/sd/fw_upgrade/TZ ]; then
+        cp -f /tmp/sd/fw_upgrade/TZ /etc/
         chmod 0644 /etc/TZ
     fi
-    rm $YI_HACK_PREFIX/.fw_upgrade_in_progress
+    rm $YI_HACK_PREFIX/fw_upgrade_in_progress
 fi
 
 $YI_HACK_PREFIX/script/check_conf.sh
 
-hostname -F /etc/hostname
+hostname -F $YI_HACK_PREFIX/etc/hostname
+export TZ=$(get_config TIMEZONE)
 
 if [[ x$(get_config USERNAME) != "x" ]] ; then
     USERNAME=$(get_config USERNAME)
@@ -73,15 +71,26 @@ if [[ x$(get_config USERNAME) != "x" ]] ; then
     echo "/:$USERNAME:$PASSWORD" > /tmp/httpd.conf
 fi
 
-PASSWORD_MD5='$1$$qRPK7m23GJusamGpoGLby/'
+#PASSWORD_MD5='$1$$qRPK7m23GJusamGpoGLby/'
+#if [[ x$(get_config SSH_PASSWORD) != "x" ]] ; then
+#    SSH_PASSWORD=$(get_config SSH_PASSWORD)
+#    PASSWORD_MD5="$(echo "${SSH_PASSWORD}" | mkpasswd --method=MD5 --stdin)"
+#fi
+#CUR_PASSWORD_MD5=$(awk -F":" '$1 != "" { print $2 } ' /etc/passwd)
+#if [[ x$CUR_PASSWORD_MD5 != x$PASSWORD_MD5 ]] ; then
+#    sed -i 's|^\(root:\)[^:]*:|root:'${PASSWORD_MD5}':|g' "/etc/passwd"
+#fi
 if [[ x$(get_config SSH_PASSWORD) != "x" ]] ; then
     SSH_PASSWORD=$(get_config SSH_PASSWORD)
     PASSWORD_MD5="$(echo "${SSH_PASSWORD}" | mkpasswd --method=MD5 --stdin)"
+    cp -f "/etc/passwd" "/home/yi-hack/etc/passwd"
+    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/home/yi-hack/etc/passwd"
+    mount --bind "/home/yi-hack/etc/passwd" "/etc/passwd"
+    cp -f "/etc/shadow" "/home/yi-hack/etc/shadow"
+    sed -i 's|^root::|root:'${PASSWORD_MD5}':|g' "/home/yi-hack/etc/shadow"
+    mount --bind "/home/yi-hack/etc/shadow" "/etc/shadow"
 fi
-CUR_PASSWORD_MD5=$(awk -F":" '$1 != "" { print $2 } ' /etc/passwd)
-if [[ x$CUR_PASSWORD_MD5 != x$PASSWORD_MD5 ]] ; then
-    sed -i 's|^\(root:\)[^:]*:|root:'${PASSWORD_MD5}':|g' "/etc/passwd"
-fi
+
 
 case $(get_config RTSP_PORT) in
     ''|*[!0-9]*) RTSP_PORT=554 ;;
@@ -95,6 +104,11 @@ case $(get_config HTTPD_PORT) in
     ''|*[!0-9]*) HTTPD_PORT=8080 ;;
     *) HTTPD_PORT=$(get_config HTTPD_PORT) ;;
 esac
+
+if [ ! -f $YI_PREFIX/cloudAPI_real ]; then
+    mv $YI_PREFIX/cloudAPI $YI_PREFIX/cloudAPI_real
+    cp $YI_HACK_PREFIX/script/cloudAPI $YI_PREFIX/
+fi
 
 if [[ $(get_config DISABLE_CLOUD) == "no" ]] ; then
     (
@@ -159,6 +173,7 @@ if [[ $(get_config FTPD) == "yes" ]] ; then
 fi
 
 if [[ $(get_config SSHD) == "yes" ]] ; then
+    mkdir -p $YI_HACK_PREFIX/etc/dropbear
     dropbear -R
 fi
 
@@ -227,6 +242,9 @@ if [[ $(get_config RTSP) == "yes" ]] ; then
     $YI_HACK_PREFIX/script/wd_rtsp.sh &
 fi
 
+SERIAL_NUMBER=$(dd bs=1 count=20 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-20)
+HW_ID=$(dd bs=1 count=4 skip=592 if=/tmp/mmap.info 2>/dev/null | cut -c1-4)
+
 if [[ $(get_config ONVIF) == "yes" ]] ; then
     if [[ $MODEL_SUFFIX == "h201c" ]] ; then
         onvif_srvd --pid_file /var/run/onvif_srvd.pid --model "Yi Hack" --manufacturer "Yi" --firmware_ver "$YI_HACK_VER" --hardware_id $HW_ID --serial_num $SERIAL_NUMBER --ifs wlan0 --port $ONVIF_PORT --scope onvif://www.onvif.org/Profile/S $ONVIF_PROFILE_0 $ONVIF_PROFILE_1 $ONVIF_USERPWD --ptz --move_left "/home/yi-hack/bin/ipc_cmd -m left" --move_right "/home/yi-hack/bin/ipc_cmd -m right" --move_up "/home/yi-hack/bin/ipc_cmd -m up" --move_down "/home/yi-hack/bin/ipc_cmd -m down" --move_stop "/home/yi-hack/bin/ipc_cmd -m stop" --move_preset "/home/yi-hack/bin/ipc_cmd -p"
@@ -244,6 +262,14 @@ if [[ $FREE_SPACE != "0" ]] ; then
     echo "  0  *  *  *  *  /home/yi-hack/script/clean_records.sh $FREE_SPACE" > /var/spool/cron/crontabs/root
     /usr/sbin/crond -c /var/spool/cron/crontabs/
 fi
+
+framefinder &
+
+# Remove log files written to SD on boot containing the WiFi password
+rm -f "/tmp/sd/log/log_first_login.tar.gz"
+rm -f "/tmp/sd/log/log_login.tar.gz"
+rm -f "/tmp/sd/log/log_p2p_clr.tar.gz"
+rm -f "/tmp/sd/log/log_wifi_connected.tar.gz"
 
 if [[ $(get_config FTP_UPLOAD) == "yes" ]] ; then
     /home/yi-hack/script/ftppush.sh start &
