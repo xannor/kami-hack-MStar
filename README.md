@@ -1,3 +1,4 @@
+# This is incomplete and for now, abandinded, do not use for anythig other than reference.
 
 # Custom firmware for Kami (Yi) camera based on MStar platform
 
